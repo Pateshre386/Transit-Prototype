@@ -55,37 +55,6 @@
             color: #444;
         }
 
-        /* NEW: Toggle Controls specific */
-        .controls-box {
-            top: 200px;
-            /* Sits directly below the legend */
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .toggle-btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #0b1a30;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            text-align: left;
-        }
-
-        .toggle-btn:hover {
-            background-color: #1a3a60;
-        }
-
-        .toggle-btn.off {
-            background-color: #cccccc;
-            color: #666666;
-            text-decoration: line-through;
-        }
-
         /* Coordinate Tracker specific */
         #coord-box {
             position: absolute;
@@ -116,12 +85,6 @@
         <p>▬ <b style="color:#ff7800;">Solid Orange Line:</b> Fast Hub Express</p>
     </div>
 
-    <div class="ui-box controls-box">
-        <button id="btn-heat" class="toggle-btn">👁️ Toggle Heatmap</button>
-        <button id="btn-slow" class="toggle-btn">🚌 Toggle Slow Routes</button>
-        <button id="btn-fast" class="toggle-btn">🚀 Toggle Fast Hubs</button>
-    </div>
-
     <div id="coord-box">Hover over map to get coords</div>
 
     <div id="map"></div>
@@ -139,10 +102,6 @@
         }).addTo(map);
 
         L.marker([43.2609, -79.9192]).addTo(map).bindPopup('<b>McMaster University</b>').openPopup();
-
-        // Layer Groups for Toggling
-        const slowLayerGroup = L.layerGroup().addTo(map);
-        const fastLayerGroup = L.layerGroup().addTo(map);
 
         // ==========================================
         // DATA: HUBS
@@ -210,7 +169,7 @@
             [43.2381, -79.8006, 0.4], [43.2404, -79.8099, 0.4], [43.2425, -79.8197, 0.5], [43.2436, -79.8238, 0.4]
         ];
 
-        const heatLayer = L.heatLayer(latenessData, {
+        L.heatLayer(latenessData, {
             radius: 40, blur: 35, minOpacity: 0.3, maxZoom: 12,
             gradient: { 0.0: 'blue', 0.4: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
         }).addTo(map);
@@ -234,11 +193,11 @@
         ];
 
         slowRoutes.forEach(route => {
-            L.polyline(route, { color: '#0088ff', weight: 3, opacity: 0.8 }).addTo(slowLayerGroup);
+            L.polyline(route, { color: '#0088ff', weight: 3, opacity: 0.8 }).addTo(map);
         });
 
         const slowMarkers = slowRoutes.map(route => {
-            return L.circleMarker(route[0], { radius: 6, fillColor: "#0088ff", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1 }).addTo(slowLayerGroup);
+            return L.circleMarker(route[0], { radius: 6, fillColor: "#0088ff", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1 }).addTo(map);
         });
 
         function getStopDistances(routeCoords) {
@@ -283,11 +242,11 @@
         const fastRoutesArray = [fastRoutes, fastEastgate, fastAncaster, fastBurlington, fastDowntown];
 
         fastRoutesArray.forEach(route => {
-            L.polyline(route, { color: '#ff7800', weight: 3, opacity: 0.8 }).addTo(fastLayerGroup);
+            L.polyline(route, { color: '#ff7800', weight: 3, opacity: 0.8 }).addTo(map);
         });
 
         const fastMarkers = fastRoutesArray.map(route => {
-            return L.circleMarker(route[0], { radius: 7, fillColor: "#ff7800", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1 }).addTo(fastLayerGroup);
+            return L.circleMarker(route[0], { radius: 7, fillColor: "#ff7800", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1 }).addTo(map);
         });
 
         const fastBuses = fastRoutesArray.map((route, i) => {
@@ -344,44 +303,6 @@
         }
 
         animateDots();
-
-        // ==========================================
-        // UI TOGGLE LOGIC
-        // ==========================================
-
-        // NEW: Stop the map from stealing clicks from the buttons
-        const controlsBox = document.querySelector('.controls-box');
-        L.DomEvent.disableClickPropagation(controlsBox);
-
-        document.getElementById('btn-heat').addEventListener('click', function () {
-            if (map.hasLayer(heatLayer)) {
-                map.removeLayer(heatLayer);
-                this.classList.add('off');
-            } else {
-                map.addLayer(heatLayer);
-                this.classList.remove('off');
-            }
-        });
-
-        document.getElementById('btn-slow').addEventListener('click', function () {
-            if (map.hasLayer(slowLayerGroup)) {
-                map.removeLayer(slowLayerGroup);
-                this.classList.add('off');
-            } else {
-                map.addLayer(slowLayerGroup);
-                this.classList.remove('off');
-            }
-        });
-
-        document.getElementById('btn-fast').addEventListener('click', function () {
-            if (map.hasLayer(fastLayerGroup)) {
-                map.removeLayer(fastLayerGroup);
-                this.classList.add('off');
-            } else {
-                map.addLayer(fastLayerGroup);
-                this.classList.remove('off');
-            }
-        });
 
         // ==========================================
         // COORDINATE TRACKER
