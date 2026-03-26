@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transit Prototype - Final</title>
+    <title>Transit Prototype - Simulation</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
@@ -25,9 +25,9 @@
             filter: sepia(100%) hue-rotate(200deg) saturate(350%) brightness(0.8) contrast(1.1);
         }
 
-        /* UI Panels */
-        .ui-box {
+        .legend-box {
             position: absolute;
+            top: 15px;
             right: 15px;
             z-index: 1000;
             background: rgba(255, 255, 255, 0.95);
@@ -36,11 +36,6 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             font-family: Arial, sans-serif;
             border: 1px solid #ddd;
-        }
-
-        /* Legend specific */
-        .legend-box {
-            top: 15px;
         }
 
         .legend-box h3 {
@@ -55,38 +50,6 @@
             color: #444;
         }
 
-        /* NEW: Toggle Controls specific */
-        .controls-box {
-            top: 200px;
-            /* Sits directly below the legend */
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .toggle-btn {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #0b1a30;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            text-align: left;
-        }
-
-        .toggle-btn:hover {
-            background-color: #1a3a60;
-        }
-
-        .toggle-btn.off {
-            background-color: #cccccc;
-            color: #666666;
-            text-decoration: line-through;
-        }
-
-        /* Coordinate Tracker specific */
         #coord-box {
             position: absolute;
             bottom: 15px;
@@ -107,19 +70,13 @@
 
 <body>
 
-    <div class="ui-box legend-box">
+    <div class="legend-box">
         <h3>Transit Prototype</h3>
         <p>🔴 <b>Red/Yellow:</b> High Lateness Areas</p>
         <p>🟠 <b>Orange Circles:</b> Proposed Hubs</p>
         <p>🔵 <b>Blue Marker:</b> McMaster University</p>
-        <p>▬ <b style="color:#0088ff;">Solid Blue Line:</b> Current Slow Routes</p>
+        <p>➖ <b>Gray Dashed Line:</b> Current Slow Routes</p>
         <p>▬ <b style="color:#ff7800;">Solid Orange Line:</b> Fast Hub Express</p>
-    </div>
-
-    <div class="ui-box controls-box">
-        <button id="btn-heat" class="toggle-btn">👁️ Toggle Heatmap</button>
-        <button id="btn-slow" class="toggle-btn">🚌 Toggle Slow Routes</button>
-        <button id="btn-fast" class="toggle-btn">🚀 Toggle Fast Hubs</button>
     </div>
 
     <div id="coord-box">Hover over map to get coords</div>
@@ -140,13 +97,6 @@
 
         L.marker([43.2609, -79.9192]).addTo(map).bindPopup('<b>McMaster University</b>').openPopup();
 
-        // Layer Groups for Toggling
-        const slowLayerGroup = L.layerGroup().addTo(map);
-        const fastLayerGroup = L.layerGroup().addTo(map);
-
-        // ==========================================
-        // DATA: HUBS
-        // ==========================================
         const hubs = [
             { name: "Lime Ridge Hub", coords: [43.2177, -79.8630] },
             { name: "Eastgate Hub", coords: [43.2260, -79.7628] },
@@ -165,52 +115,14 @@
         // DATA: HEATMAP
         // ==========================================
         const latenessData = [
-            // === Lime Ridge Hub [43.2177, -79.8630] ===
-            [43.2177, -79.8630, 1.0], [43.2185, -79.8618, 1.0], [43.2168, -79.8645, 0.9], [43.2190, -79.8640, 0.9], [43.2160, -79.8620, 0.9],
-            [43.2200, -79.8600, 0.7], [43.2155, -79.8600, 0.7], [43.2200, -79.8660, 0.6], [43.2150, -79.8660, 0.7], [43.2210, -79.8630, 0.6],
-            [43.2145, -79.8630, 0.6], [43.2175, -79.8580, 0.6], [43.2175, -79.8680, 0.6],
-            [43.2225, -79.8590, 0.4], [43.2130, -79.8590, 0.3], [43.2225, -79.8680, 0.3], [43.2130, -79.8680, 0.4],
-            [43.2240, -79.8630, 0.3], [43.2115, -79.8630, 0.3], [43.2175, -79.8540, 0.3], [43.2175, -79.8720, 0.3],
-
-            // === Eastgate Hub [43.2260, -79.7628] ===
-            [43.2260, -79.7628, 1.0], [43.2270, -79.7615, 1.0], [43.2250, -79.7640, 0.9], [43.2275, -79.7635, 0.9], [43.2245, -79.7618, 0.9],
-            [43.2285, -79.7600, 0.7], [43.2240, -79.7600, 0.7], [43.2285, -79.7655, 0.6], [43.2235, -79.7655, 0.7], [43.2295, -79.7628, 0.6],
-            [43.2225, -79.7628, 0.6], [43.2260, -79.7575, 0.6], [43.2260, -79.7680, 0.6],
-            [43.2310, -79.7590, 0.4], [43.2210, -79.7590, 0.3], [43.2310, -79.7670, 0.3], [43.2210, -79.7670, 0.4],
-            [43.2320, -79.7628, 0.3], [43.2200, -79.7628, 0.3], [43.2260, -79.7530, 0.3], [43.2260, -79.7720, 0.3],
-
-            // === Ancaster Hub [43.2200, -79.9800] ===
-            [43.2200, -79.9800, 1.0], [43.2212, -79.9785, 1.0], [43.2188, -79.9815, 0.9], [43.2215, -79.9810, 0.9], [43.2185, -79.9790, 0.9],
-            [43.2230, -79.9765, 0.7], [43.2175, -79.9765, 0.7], [43.2230, -79.9835, 0.6], [43.2170, -79.9835, 0.7], [43.2245, -79.9800, 0.6],
-            [43.2155, -79.9800, 0.6], [43.2200, -79.9745, 0.6], [43.2200, -79.9858, 0.6],
-            [43.2265, -79.9720, 0.4], [43.2135, -79.9720, 0.3], [43.2265, -79.9880, 0.3], [43.2135, -79.9880, 0.4],
-            [43.2280, -79.9800, 0.3], [43.2120, -79.9800, 0.3], [43.2200, -79.9680, 0.3], [43.2200, -79.9920, 0.3],
-            [43.2155, -79.9870, 0.8], [43.2130, -79.9910, 0.7], [43.2108, -79.9950, 0.8], [43.2175, -79.9920, 0.7],
-            [43.2240, -79.9835, 0.6], [43.2178, -79.9873, 0.7], [43.2153, -79.9911, 0.7],
-
-            // === Burlington Hub [43.3250, -79.8050] ===
-            [43.3250, -79.8050, 1.0], [43.3262, -79.8035, 1.0], [43.3238, -79.8065, 0.9], [43.3268, -79.8060, 0.9], [43.3235, -79.8040, 0.9],
-            [43.3280, -79.8015, 0.7], [43.3225, -79.8015, 0.7], [43.3280, -79.8085, 0.6], [43.3220, -79.8085, 0.7], [43.3295, -79.8050, 0.6],
-            [43.3210, -79.8050, 0.6], [43.3250, -79.7995, 0.6], [43.3250, -79.8105, 0.6],
-            [43.3315, -79.7970, 0.4], [43.3185, -79.7970, 0.3], [43.3315, -79.8130, 0.3], [43.3185, -79.8130, 0.4],
-            [43.3330, -79.8050, 0.3], [43.3170, -79.8050, 0.3], [43.3250, -79.7930, 0.3], [43.3250, -79.8170, 0.3],
-
-            // === Downtown Hub [43.2533, -79.8694] ===
-            [43.2533, -79.8694, 1.0], [43.2545, -79.8678, 1.0], [43.2520, -79.8710, 0.9], [43.2548, -79.8708, 0.9], [43.2518, -79.8680, 0.9],
-            [43.2560, -79.8655, 0.7], [43.2510, -79.8655, 0.7], [43.2560, -79.8730, 0.6], [43.2505, -79.8730, 0.7], [43.2575, -79.8694, 0.6],
-            [43.2495, -79.8694, 0.6], [43.2533, -79.8635, 0.6], [43.2533, -79.8755, 0.6],
-            [43.2595, -79.8610, 0.4], [43.2475, -79.8610, 0.3], [43.2595, -79.8780, 0.3], [43.2475, -79.8780, 0.4],
-            [43.2610, -79.8694, 0.3], [43.2460, -79.8694, 0.3], [43.2533, -79.8560, 0.3], [43.2533, -79.8830, 0.3],
-
-            // === Route corridor lateness ===
-            [43.2480, -79.8286, 0.5], [43.2513, -79.8384, 0.5], [43.2518, -79.8463, 0.5], [43.2528, -79.8543, 0.5],
-            [43.2535, -79.8593, 0.5], [43.2544, -79.8621, 0.5], [43.2554, -79.8653, 0.4], [43.2563, -79.8678, 0.4],
-            [43.2200, -79.8073, 0.5], [43.2254, -79.8050, 0.5], [43.2312, -79.8026, 0.4], [43.2361, -79.8223, 0.4],
-            [43.2434, -79.8305, 0.5], [43.2461, -79.8406, 0.5], [43.2483, -79.8506, 0.4],
-            [43.2381, -79.8006, 0.4], [43.2404, -79.8099, 0.4], [43.2425, -79.8197, 0.5], [43.2436, -79.8238, 0.4]
+            [43.255, -79.865, 0.9], [43.251, -79.855, 0.8], [43.248, -79.840, 0.9], [43.245, -79.830, 0.7], [43.240, -79.820, 0.8], [43.235, -79.810, 0.9], [43.258, -79.870, 0.8], [43.260, -79.880, 0.7], [43.230, -79.790, 0.8], [43.245, -79.850, 0.9], [43.250, -79.860, 0.8],
+            [43.220, -79.870, 0.8], [43.215, -79.860, 0.7], [43.225, -79.880, 0.6], [43.210, -79.850, 0.9], [43.205, -79.840, 0.7], [43.230, -79.890, 0.5],
+            [43.220, -79.760, 0.9], [43.215, -79.750, 0.8], [43.225, -79.770, 0.7], [43.218, -79.755, 0.9], [43.222, -79.765, 0.8], [43.220, -79.740, 0.7],
+            [43.220, -79.980, 1.0], [43.215, -79.970, 0.9], [43.225, -79.990, 0.9], [43.230, -79.975, 0.8], [43.210, -79.985, 0.8], [43.220, -79.960, 0.9], [43.215, -79.950, 0.8], [43.225, -79.955, 0.8], [43.222, -79.995, 0.9], [43.218, -79.988, 1.0], [43.212, -79.978, 0.9], [43.228, -79.982, 0.8],
+            [43.325, -79.805, 0.9], [43.330, -79.800, 0.8], [43.320, -79.815, 0.8], [43.328, -79.795, 0.7], [43.318, -79.810, 0.9], [43.335, -79.790, 0.6]
         ];
 
-        const heatLayer = L.heatLayer(latenessData, {
+        L.heatLayer(latenessData, {
             radius: 40, blur: 35, minOpacity: 0.3, maxZoom: 12,
             gradient: { 0.0: 'blue', 0.4: 'cyan', 0.6: 'lime', 0.8: 'yellow', 1.0: 'red' }
         }).addTo(map);
@@ -218,211 +130,30 @@
         // ==========================================
         // DATA & LOGIC: CURRENT SLOW ROUTES
         // ==========================================
-         const slowRoutes = [
-  [
-    // Route 1: 1 King (Eastgate to West Hamilton Loop)
-    [43.2289, -79.7655], // Eastgate Terminal Platform 4
-    [43.2289, -79.7684], // Queenston / Kenora
-    [43.2292, -79.7701], // Queenston / Clapham
-    [43.2300, -79.7739], // Queenston / Nash
-    [43.2293, -79.7745], // Queenston / Queenston Place
-    [43.2313, -79.7792], // Queenston / Woodman
-    [43.2319, -79.7815], // Queenston / Pottruff
-    [43.2332, -79.7881], // Queenston / Reid
-    [43.2340, -79.7909], // Queenston / Adair
-    [43.2345, -79.7929], // Queenston / Parkdale
-    [43.2352, -79.7958], // Queenston / Isabel
-    [43.2356, -79.7977], // Queenston / Walter
-    [43.2360, -79.7995], // Queenston / Rosewood
-    [43.2381, -79.8006], // Main / Strathearne
-    [43.2380, -79.7995], // Main / Weir
-    [43.2393, -79.8054], // Main / Cope
-    [43.2400, -79.8080], // Main / Garside
-    [43.2404, -79.8099], // Main / Kenilworth
-    [43.2410, -79.8129], // Main / Wexford
-    [43.2414, -79.8149], // Main / Graham
-    [43.2414, -79.8149], // Main / Park Row (approx Graham area)
-    [43.2425, -79.8197], // Main / Ottawa
-    [43.2436, -79.8219], // Main / Balmoral
-    [43.2436, -79.8238], // Main / Kensington
-    [43.2448, -79.8254], // King / Belview
-    [43.2448, -79.8260], // King / East Bend (near Belview)
-    [43.2480, -79.8286], // King / Gage
-    [43.2501, -79.8325], // King / Melrose
-    [43.2512, -79.8362], // King / Fairholt
-    [43.2513, -79.8384], // King / Sherman
-    [43.2514, -79.8415], // King / Holton
-    [43.2515, -79.8438], // King / Stirton
-    [43.2518, -79.8463], // King / Sanford
-    [43.2528, -79.8486], // King / Wentworth
-    [43.2525, -79.8519], // King / Steven
-    [43.2528, -79.8543], // King / Emerald
-    [43.2531, -79.8568], // King / Victoria
-    [43.2535, -79.8593], // King / Wellington
-    [43.2544, -79.8621], // King / Ferguson
-    [43.2548, -79.8632], // King / Walnut
-    [43.2554, -79.8653], // King / Catharine
-    [43.2563, -79.8678], // King / Hughson
-    [43.2557, -79.8666], // King / James
-    [43.2580, -79.8738], // King / Bay
-    [43.2585, -79.8757], // King / Caroline
-    [43.2594, -79.8787], // King / Queen
-    [43.2604, -79.8819], // King / Pearl
-    [43.2614, -79.8853], // King / Strathcona
-    [43.2622, -79.8880], // King / Dundurn
-    [43.2621, -79.8967], // King / Macklin
-    [43.2630, -79.9007], // King / Longwood
-    [43.2603, -79.9098], // King / Cline
-    [43.2603, -79.9098], // King / Marion (near Cline)
-    [43.2613, -79.9072], // King / Sterling
-    [43.2620, -79.9101], // Sterling / Haddon
-    [43.2621, -79.9121], // Sterling / Dalewood
-    [43.2623, -79.9159], // Sterling / Forsyth
-    [43.2622, -79.9188], // Sterling / University
-    [43.2610, -79.9178], // University / Life Sciences
-    [43.2659, -79.9141], // University / Forsyth
-    [43.2577, -79.9195], // Main / Emerson
-    [43.2575, -79.9235], // Main / Norfolk
-    [43.2576, -79.9259], // Main / Hollywood
-    [43.2575, -79.9280], // Main / Cottrill
-    [43.2574, -79.9302], // Main / Westbourne
-    [43.2574, -79.9317], // Main / West Park
-    [43.2578, -79.9344], // 1686 Main
-    [43.2544, -79.9378], // Main / Sheridan
-    [43.2522, -79.9396], // Main / Whitney
-    [43.2509, -79.9405], // Main / White Chapel Cemetery
-    [43.2484, -79.9428], // 1950 Main
-    [43.2473, -79.9436], // 2000 Main
-    [43.2478, -79.9460], // Wilson / Wentworth Arenas
-    [43.2452, -79.9488], // West Hamilton Loop
-  ],
-  [
-    // Route 2: Ancaster (Meadowlands to Duff's Corners)
-    [43.2274, -79.9447], // Meadowlands Terminal Platform 3
-    [43.2264, -79.9484], // Golf Links / Legend
-    [43.2257, -79.9528], // Golf Links / Kitty Murray
-    [43.2248, -79.9594], // Golf Links / Onondaga
-    [43.2239, -79.9628], // Golf Links / McNiven
-    [43.2266, -79.9633], // McNiven / Tomahawk
-    [43.2293, -79.9641], // McNiven / Mohawk
-    [43.2297, -79.9707], // Rousseaux / Academy
-    [43.2310, -79.9741], // Wilson / Old Dundas
-    [43.2282, -79.9756], // Wilson / Academy
-    [43.2261, -79.9768], // Wilson / Sulphur Spring
-    [43.2240, -79.9781], // Wilson / Halson
-    [43.2255, -79.9764], // Wilson / Dalley (approx Ancaster Town Hall area)
-    [43.2204, -79.9834], // Wilson / Jerseyville
-    [43.2178, -79.9873], // Wilson / Fiddler's Green East
-    [43.2178, -79.9873], // Wilson / Fiddler's Green West
-    [43.2178, -79.9873], // Wilson / Ancaster Town Plaza
-    [43.2153, -79.9911], // Wilson / Dunham
-    [43.2131, -79.9945], // Wilson / Seminole
-    [43.2108, -79.9981], // Wilson / Central
-    [43.2098, -79.9995], // Amberly / Wilson
-    [43.2098, -79.9995], // Wilson / Valleyview
-    [43.2141, -79.9937], // Wilson / Meadowbrook (approx)
-    [43.1988, -80.0121], // Shaver / Wilson -> Shaver / Liddycoat
-    [43.1988, -80.0128], // Shaver / Liddycoat
-    [43.1968, -80.0121], // Shaver / Garner
-    [43.1976, -80.0138], // Garner / Walmart
-    [43.2027, -79.9763], // Garner / Duff's Corners
-  ],
-  [
-    // Route 3: University (GO Centre to McMaster)
-    [43.2533, -79.8692], // Hamilton GO Centre Platform 17
-    [43.2539, -79.8674], // John / Jackson
-    [43.2557, -79.8666], // King / John
-    [43.2567, -79.8691], // King / James
-    [43.2580, -79.8738], // King / Bay
-    [43.2585, -79.8757], // King / Caroline
-    [43.2594, -79.8787], // King / Queen
-    [43.2604, -79.8819], // King / Pearl
-    [43.2614, -79.8853], // King / Strathcona
-    [43.2622, -79.8880], // King / Dundurn
-    [43.2621, -79.8967], // King / Macklin
-    [43.2630, -79.9007], // King / Longwood
-    [43.2603, -79.9098], // King / Cline
-    [43.2603, -79.9098], // King / Marion
-    [43.2613, -79.9072], // King / Sterling
-    [43.2620, -79.9101], // Sterling / Haddon
-    [43.2621, -79.9121], // Sterling / Dalewood
-    [43.2623, -79.9159], // Sterling / Forsyth
-    [43.2622, -79.9188], // Sterling / University
-    [43.2610, -79.9178], // University / Life Sciences
-    [43.2659, -79.9141], // University / Forsyth
-  ],
-  [
-    // Route 4: Delaware (Greenhill to McMaster)
-    [43.2200, -79.8073], // Greenhill / Cochrane
-    [43.2235, -79.8058], // Cochrane / Dundonald
-    [43.2254, -79.8050], // Cochrane / Montrose
-    [43.2272, -79.8043], // Cochrane / Hixon
-    [43.2291, -79.8035], // Cochrane / Lawrence
-    [43.2312, -79.8026], // Cochrane / King
-    [43.2312, -79.8026], // King / Cochrane
-    [43.2315, -79.8053], // King / Rodgers
-    [43.2317, -79.8077], // King / Rosedale
-    [43.2321, -79.8104], // King / Cameron
-    [43.2337, -79.8157], // King / Kenilworth (approx)
-    [43.2337, -79.8157], // King / Wexford (approx)
-    [43.2352, -79.8184], // Province / Justine
-    [43.2356, -79.8204], // Justine / Edgemont
-    [43.2361, -79.8223], // Justine / Ottawa
-    [43.2366, -79.8245], // Justine / Balmoral
-    [43.2361, -79.8258], // Lawrence / Rosslyn
-    [43.2369, -79.8276], // Lawrence / Rothsay
-    [43.2395, -79.8321], // Lawrence / Gage Park
-    [43.2386, -79.8295], // 50 Lawrence
-    [43.2408, -79.8317], // Gage / Cumberland
-    [43.2428, -79.8312], // 194 Gage
-    [43.2434, -79.8305], // Maplewood / Gage
-    [43.2440, -79.8326], // Maplewood / Balsam
-    [43.2445, -79.8344], // Maplewood / Prospect
-    [43.2451, -79.8369], // Maplewood / Springer
-    [43.2458, -79.8392], // Maplewood / Blake
-    [43.2461, -79.8406], // Maplewood / Sherman
-    [43.2465, -79.8436], // Delaware / Holton
-    [43.2470, -79.8458], // Delaware / Burris
-    [43.2476, -79.8481], // Delaware / Sanford
-    [43.2483, -79.8506], // Delaware / Wentworth
-    [43.2474, -79.8521], // Stinson / Grant
-    [43.2479, -79.8539], // Stinson / Erie
-    [43.2484, -79.8560], // Stinson / Emerald
-    [43.2490, -79.8585], // Stinson / Victoria
-    [43.2496, -79.8610], // Stinson / Wellington
-    [43.2513, -79.8615], // Hunter / Spring
-    [43.2521, -79.8644], // Hunter / Walnut
-    [43.2530, -79.8678], // Hunter / John
-    [43.2539, -79.8674], // John / Jackson
-    [43.2557, -79.8666], // King / John
-    [43.2567, -79.8691], // King / James
-    [43.2580, -79.8738], // King / Bay
-    [43.2585, -79.8757], // King / Caroline
-    [43.2594, -79.8787], // King / Queen
-    [43.2604, -79.8819], // King / Pearl
-    [43.2614, -79.8853], // King / Strathcona
-    [43.2622, -79.8880], // King / Dundurn
-    [43.2621, -79.8967], // King / Macklin
-    [43.2630, -79.9007], // King / Longwood
-    [43.2603, -79.9098], // King / Cline
-    [43.2603, -79.9098], // King / Marion
-    [43.2613, -79.9072], // King / Sterling
-    [43.2620, -79.9101], // Sterling / Haddon
-    [43.2621, -79.9121], // Sterling / Dalewood
-    [43.2623, -79.9159], // Sterling / Forsyth
-    [43.2622, -79.9188], // Sterling / University
-    [43.2610, -79.9178], // University / Life Sciences
-    [43.2659, -79.9141], // University / Forsyth
-  ],
-];
+        const slowRoutes = [
+            [ // Route 1: 1 King
+                [43.2289, -79.7655], [43.2289, -79.7684], [43.2292, -79.7701], [43.2300, -79.7739], [43.2293, -79.7745], [43.2313, -79.7792], [43.2319, -79.7815], [43.2332, -79.7881], [43.2340, -79.7909], [43.2345, -79.7929], [43.2352, -79.7958], [43.2356, -79.7977], [43.2360, -79.7995], [43.2381, -79.8006], [43.2380, -79.7995], [43.2393, -79.8054], [43.2400, -79.8080], [43.2404, -79.8099], [43.2410, -79.8129], [43.2414, -79.8149], [43.2414, -79.8149], [43.2425, -79.8197], [43.2436, -79.8219], [43.2436, -79.8238], [43.2448, -79.8254], [43.2448, -79.8260], [43.2480, -79.8286], [43.2501, -79.8325], [43.2512, -79.8362], [43.2513, -79.8384], [43.2514, -79.8415], [43.2515, -79.8438], [43.2518, -79.8463], [43.2528, -79.8486], [43.2525, -79.8519], [43.2528, -79.8543], [43.2531, -79.8568], [43.2535, -79.8593], [43.2544, -79.8621], [43.2548, -79.8632], [43.2554, -79.8653], [43.2563, -79.8678], [43.2557, -79.8666], [43.2580, -79.8738], [43.2585, -79.8757], [43.2594, -79.8787], [43.2604, -79.8819], [43.2614, -79.8853], [43.2622, -79.8880], [43.2621, -79.8967], [43.2630, -79.9007], [43.2603, -79.9098], [43.2603, -79.9098], [43.2613, -79.9072], [43.2620, -79.9101], [43.2621, -79.9121], [43.2623, -79.9159], [43.2622, -79.9188], [43.2610, -79.9178], [43.2659, -79.9141], [43.2577, -79.9195], [43.2575, -79.9235], [43.2576, -79.9259], [43.2575, -79.9280], [43.2574, -79.9302], [43.2574, -79.9317], [43.2578, -79.9344], [43.2544, -79.9378], [43.2522, -79.9396], [43.2509, -79.9405], [43.2484, -79.9428], [43.2473, -79.9436], [43.2478, -79.9460], [43.2452, -79.9488]
+            ],
+            [ // Route 2: Ancaster
+                [43.2274, -79.9447], [43.2264, -79.9484], [43.2257, -79.9528], [43.2248, -79.9594], [43.2239, -79.9628], [43.2266, -79.9633], [43.2293, -79.9641], [43.2297, -79.9707], [43.2310, -79.9741], [43.2282, -79.9756], [43.2261, -79.9768], [43.2240, -79.9781], [43.2255, -79.9764], [43.2204, -79.9834], [43.2178, -79.9873], [43.2178, -79.9873], [43.2178, -79.9873], [43.2153, -79.9911], [43.2131, -79.9945], [43.2108, -79.9981], [43.2098, -79.9995], [43.2098, -79.9995], [43.2141, -79.9937], [43.1988, -80.0121], [43.1988, -80.0128], [43.1968, -80.0121], [43.1976, -80.0138], [43.2027, -79.9763]
+            ],
+            [ // Route 3: University
+                [43.2533, -79.8692], [43.2539, -79.8674], [43.2557, -79.8666], [43.2567, -79.8691], [43.2580, -79.8738], [43.2585, -79.8757], [43.2594, -79.8787], [43.2604, -79.8819], [43.2614, -79.8853], [43.2622, -79.8880], [43.2621, -79.8967], [43.2630, -79.9007], [43.2603, -79.9098], [43.2603, -79.9098], [43.2613, -79.9072], [43.2620, -79.9101], [43.2621, -79.9121], [43.2623, -79.9159], [43.2622, -79.9188], [43.2610, -79.9178], [43.2659, -79.9141]
+            ],
+            [ // Route 4: Delaware
+                [43.2200, -79.8073], [43.2235, -79.8058], [43.2254, -79.8050], [43.2272, -79.8043], [43.2291, -79.8035], [43.2312, -79.8026], [43.2312, -79.8026], [43.2315, -79.8053], [43.2317, -79.8077], [43.2321, -79.8104], [43.2337, -79.8157], [43.2337, -79.8157], [43.2352, -79.8184], [43.2356, -79.8204], [43.2361, -79.8223], [43.2366, -79.8245], [43.2361, -79.8258], [43.2369, -79.8276], [43.2395, -79.8321], [43.2386, -79.8295], [43.2408, -79.8317], [43.2428, -79.8312], [43.2434, -79.8305], [43.2440, -79.8326], [43.2445, -79.8344], [43.2451, -79.8369], [43.2458, -79.8392], [43.2461, -79.8406], [43.2465, -79.8436], [43.2470, -79.8458], [43.2476, -79.8481], [43.2483, -79.8506], [43.2474, -79.8521], [43.2479, -79.8539], [43.2484, -79.8560], [43.2490, -79.8585], [43.2496, -79.8610], [43.2513, -79.8615], [43.2521, -79.8644], [43.2530, -79.8678], [43.2539, -79.8674], [43.2557, -79.8666], [43.2567, -79.8691], [43.2580, -79.8738], [43.2585, -79.8757], [43.2594, -79.8787], [43.2604, -79.8819], [43.2614, -79.8853], [43.2622, -79.8880], [43.2621, -79.8967], [43.2630, -79.9007], [43.2603, -79.9098], [43.2603, -79.9098], [43.2613, -79.9072], [43.2620, -79.9101], [43.2621, -79.9121], [43.2623, -79.9159], [43.2622, -79.9188], [43.2610, -79.9178], [43.2659, -79.9141]
+            ]
+        ];
+
         slowRoutes.forEach(route => {
-            L.polyline(route, { color: '#0088ff', weight: 3, opacity: 0.8 }).addTo(slowLayerGroup);
+            L.polyline(route, { color: '#aaaaaa', weight: 2, dashArray: '5, 5', opacity: 0.7 }).addTo(map);
         });
 
         const slowMarkers = slowRoutes.map(route => {
-            return L.circleMarker(route[0], { radius: 6, fillColor: "#0088ff", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1 }).addTo(slowLayerGroup);
+            return L.circleMarker(route[0], { radius: 6, fillColor: "#0088ff", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1 }).addTo(map);
         });
 
+        // Setup logic for slow route pausing
         function getStopDistances(routeCoords) {
             let dists = [0];
             let cumDist = 0;
@@ -447,74 +178,105 @@
             };
         });
 
-        // ==========================================
-        // DATA & LOGIC: FAST HUB ROUTES
-        // ==========================================
-     const fastRoutes = [
-  [ // Lime Ridge Express (via LINC & 403 westbound)
-    [43.2165, -79.8620], // Lime Ridge Mall (Upper Wentworth St)
-    [43.2154, -79.8651], // Upper Wentworth / LINC on-ramp
-    [43.2158, -79.8747], // LINC westbound (mid-span)
-    [43.2203, -79.8851], // LINC / Upper James interchange
-    [43.2252, -79.9155], // LINC / Upper Paradise interchange
-    [43.2587, -79.9067], // Main St W opposite 403 ramp (off-ramp)
-    [43.2577, -79.9223], // Main St W / Cootes Dr
-    [43.2614, -79.9197], // McMaster University
-  ],
-  [ // Eastgate Express (via Queenston Rd → Main St E → King St W → Main St W)
-    [43.2289, -79.7655], // Eastgate Terminal
-    [43.2360, -79.7995], // Queenston Rd / Rosewood (becomes Main St)
-    [43.2381, -79.8006], // Main St E / Strathearne
-    [43.2425, -79.8197], // Main St E / Ottawa St
-    [43.2436, -79.8238], // Main St E / Kensington
-    [43.2567, -79.8691], // King St E / James St (downtown)
-    [43.2622, -79.8880], // King St W / Dundurn
-    [43.2587, -79.9067], // King St W → Main St W / 403 ramp
-    [43.2577, -79.9223], // Main St W / Cootes Dr
-    [43.2614, -79.9197], // McMaster University
-  ],
-  [ // Ancaster Express (via Wilson St → Hwy 403 eastbound → Main St W)
-    [43.2200, -79.9800], // Ancaster Hub (Wilson St area)
-    [43.2156, -79.9891], // Wilson St W / Fortino's (403 access point)
-    [43.2083, -80.0148], // Hwy 403 eastbound on-ramp
-    [43.2252, -79.9155], // 403 / Upper Paradise interchange
-    [43.2587, -79.9067], // 403 off-ramp / Main St W
-    [43.2577, -79.9223], // Main St W / Cootes Dr
-    [43.2614, -79.9197], // McMaster University
-  ],
-  [ // Burlington Express (via QEW → 403 → Aberdeen Ave → King St W → Main St W)
-    [43.3250, -79.8050], // Burlington Hub
-    [43.2967, -79.8663], // Plains Rd W / 403 on-ramp Burlington
-    [43.3110, -79.9163], // Hwy 403 / Hwy 6 interchange
-    [43.2645, -79.8800], // 403 / York Blvd off-ramp Hamilton
-    [43.2505, -79.8916], // Aberdeen Ave (403 local connector)
-    [43.2622, -79.8880], // King St W / Dundurn
-    [43.2587, -79.9067], // King St W → Main St W / 403 ramp
-    [43.2577, -79.9223], // Main St W / Cootes Dr
-    [43.2614, -79.9197], // McMaster University
-  ],
-  [ // Downtown Express (via King St W → Main St W)
-    [43.2533, -79.8692], // Hamilton GO Centre (downtown hub)
-    [43.2567, -79.8691], // King St / James St
-    [43.2622, -79.8880], // King St W / Dundurn
-    [43.2621, -79.8967], // King St W / Macklin
-    [43.2587, -79.9067], // King St W / Main St W (403 ramp area)
-    [43.2577, -79.9223], // Main St W / Cootes Dr
-    [43.2614, -79.9197], // McMaster University
-  ],
-];
 
-        const fastRoutesArray = [fastRoutes, fastEastgate, fastAncaster, fastBurlington, fastDowntown];
+        // ==========================================
+        // DATA & LOGIC: NEW FAST HUB ROUTES
+        // ==========================================
+        const fastRoutes = [
+            [ // Lime Ridge Express (via LINC & 403 westbound)
+                [43.2176, -79.8630],
+                [43.2178, -79.8643],
+                [43.2140, -79.8659],
+                [43.2295, -79.9310],
+                [43.2324, -79.9509],
+                [43.2351, -79.9485],
+                [43.2407, -79.9484],
+                [43.2426, -79.9458],
+                [43.2455, -79.9371],
+                [43.2485, -79.9191],
+                [43.2542, -79.9132],
+                [43.2551, -79.9071],
+                [43.2581, -79.9018],
+                [43.2595, -79.9024],
+                [43.2586, -79.9071],
+                [43.2578, -79.9196],
+                [43.2579, -79.9224],
+                [43.2579, -79.9224],
+            ],
+            [ // Eastgate Express (via Queenston Rd → Main St E → King St W → Main St W)
+                [43.2289, -79.7655], // Eastgate Terminal
+                [43.2360, -79.7995], // Queenston Rd / Rosewood (becomes Main St)
+                [43.2381, -79.8006], // Main St E / Strathearne
+                [43.2425, -79.8197], // Main St E / Ottawa St
+                [43.2436, -79.8238], // Main St E / Kensington
+                [43.2567, -79.8691], // King St E / James St (downtown)
+                [43.2622, -79.8880], // King St W / Dundurn
+                [43.2587, -79.9067], // King St W → Main St W / 403 ramp
+                [43.2577, -79.9223], // Main St W / Cootes Dr
+                [43.2614, -79.9197], // McMaster University
+            ],
+            [ // Ancaster Express (via Wilson St → Hwy 403 eastbound → Main St W)
+                [43.2200, -79.9800], // Ancaster Hub (Wilson St area)
+                [43.2215, -79.9772],
+                [43.2238, -79.9630],
+                [43.2201, -79.9612],
+                [43.2349, -79.9485],
+                [43.2407, -79.9484],
+                [43.2426, -79.9458],
+                [43.2455, -79.9371],
+                [43.2485, -79.9191],
+                [43.2542, -79.9132],
+                [43.2551, -79.9071],
+                [43.2581, -79.9018],
+                [43.2595, -79.9024],
+                [43.2586, -79.9071],
+                [43.2578, -79.9196],
+                [43.2579, -79.9224],
+                [43.2579, -79.9224],
+            ],
+            [ // Burlington Express (via QEW → 403 → Aberdeen Ave → King St W → Main St W)
+                [43.3250, -79.8050], // Burlington Hub
+                [43.3202, -79.8158],
+                [43.3272, -79.8255],
+                [43.3359, -79.8298],
+                [43.3118, -79.8608],
+                [43.2994, -79.8790],
+                [43.2939, -79.8917],
+                [43.2890, -79.8970],
+                [43.2811, -79.8922],
+                [43.2762, -79.8930],
+                [43.2649, -79.8932],
+                [43.2625, -79.8934],
+                [43.2614, -79.8934],
+                [43.2585, -79.9068],
+                [43.2574, -79.9224],
+                [43.2614, -79.9194]
+            ],
+            [ // Downtown Express (via King St W → Main St W)
+                [43.2533, -79.8692], // Hamilton GO Centre (downtown hub)
+                [43.2567, -79.8691], // King St / James St
+                [43.2622, -79.8880], // King St W / Dundurn
+                [43.2628, -79.8904],
+                [43.2618, -79.8952],
+                [43.2620, -79.8967],
+                [43.2602, -79.8975],
+                [43.2584, -79.9073],
+                [43.2578, -79.9222],
+                [43.2613, -79.9197]
+            ],
+        ];
 
-        fastRoutesArray.forEach(route => {
-            L.polyline(route, { color: '#ff7800', weight: 3, opacity: 0.8 }).addTo(fastLayerGroup);
+        // Draw solid orange lines for fast routes
+        fastRoutes.forEach(route => {
+            L.polyline(route, { color: '#ff7800', weight: 3, opacity: 0.8 }).addTo(map);
         });
 
-        const fastMarkers = fastRoutesArray.map(route => {
-            return L.circleMarker(route[0], { radius: 7, fillColor: "#ff7800", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1 }).addTo(fastLayerGroup);
+        // Create bright orange markers for fast dots
+        const fastMarkers = fastRoutes.map(route => {
+            return L.circleMarker(route[0], { radius: 7, fillColor: "#ff7800", color: "#fff", weight: 2, opacity: 1, fillOpacity: 1 }).addTo(map);
         });
 
-        const fastBuses = fastRoutesArray.map((route, i) => {
+        const fastBuses = fastRoutes.map((route, i) => {
             const flippedCoords = route.map(coord => [coord[1], coord[0]]);
             const line = turf.lineString(flippedCoords);
             return {
@@ -525,14 +287,15 @@
             };
         });
 
+
         // ==========================================
-        // ANIMATION LOOP
+        // MASTER ANIMATION LOOP
         // ==========================================
-        const slowAnimationSpeed = 0.030;
-        const fastAnimationSpeed = 0.030;
+        const slowAnimationSpeed = 0.03;
+        const fastAnimationSpeed = 0.03; // 5x faster than slow routes, and no pausing!
 
         function animateDots() {
-            // Process Slow Buses
+            // 1. Process Slow Pausing Buses
             slowBuses.forEach(bus => {
                 if (bus.isPaused) return;
 
@@ -555,10 +318,14 @@
                 bus.marker.setLatLng([currentPoint.geometry.coordinates[1], currentPoint.geometry.coordinates[0]]);
             });
 
-            // Process Fast Buses
+            // 2. Process Fast Hub Express Buses (Continuous Movement)
             fastBuses.forEach(bus => {
                 bus.currentDist += fastAnimationSpeed;
-                if (bus.currentDist > bus.length) bus.currentDist = 0;
+
+                // If it reaches the university, immediately loop back to the Hub
+                if (bus.currentDist > bus.length) {
+                    bus.currentDist = 0;
+                }
 
                 const currentPoint = turf.along(bus.line, bus.currentDist, { units: 'kilometers' });
                 bus.marker.setLatLng([currentPoint.geometry.coordinates[1], currentPoint.geometry.coordinates[0]]);
@@ -570,45 +337,7 @@
         animateDots();
 
         // ==========================================
-        // UI TOGGLE LOGIC
-        // ==========================================
-        
-        // NEW: Stop the map from stealing clicks from the buttons
-        const controlsBox = document.querySelector('.controls-box');
-        L.DomEvent.disableClickPropagation(controlsBox);
-
-        document.getElementById('btn-heat').addEventListener('click', function () {
-            if (map.hasLayer(heatLayer)) {
-                map.removeLayer(heatLayer);
-                this.classList.add('off');
-            } else {
-                map.addLayer(heatLayer);
-                this.classList.remove('off');
-            }
-        });
-
-        document.getElementById('btn-slow').addEventListener('click', function () {
-            if (map.hasLayer(slowLayerGroup)) {
-                map.removeLayer(slowLayerGroup);
-                this.classList.add('off');
-            } else {
-                map.addLayer(slowLayerGroup);
-                this.classList.remove('off');
-            }
-        });
-
-        document.getElementById('btn-fast').addEventListener('click', function () {
-            if (map.hasLayer(fastLayerGroup)) {
-                map.removeLayer(fastLayerGroup);
-                this.classList.add('off');
-            } else {
-                map.addLayer(fastLayerGroup);
-                this.classList.remove('off');
-            }
-        });
-
-        // ==========================================
-        // COORDINATE TRACKER
+        // COORDINATE TRACKER UI
         // ==========================================
         const coordBox = document.getElementById('coord-box');
 
